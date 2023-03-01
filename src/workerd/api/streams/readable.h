@@ -360,6 +360,7 @@ public:
   // disturbed and the DeferredProxy returned will take over ownership of the internal
   // state of the readable.
 
+  kj::Maybe<jsg::PromiseResolverPair<void>> eofResolverPair;
 private:
   kj::Maybe<IoContext&> ioContext;
   Controller controller;
@@ -367,6 +368,10 @@ private:
 
   void visitForGc(jsg::GcVisitor& visitor) {
     visitor.visit(getController(), maybePipeThrough);
+    KJ_IF_MAYBE(pair, eofResolverPair) {
+      visitor.visit(pair->resolver);
+      visitor.visit(pair->promise);
+    }
   }
 };
 

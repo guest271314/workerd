@@ -293,6 +293,8 @@ ReadableStream::ReadableStream(
     kj::Own<ReadableStreamSource> source)
     : ioContext(ioContext),
       controller(kj::heap<ReadableStreamInternalController>(ioContext.addObject(kj::mv(source)))) {
+  eofResolverPair = jsg::PromiseResolverPair<void>(
+      jsg::newPromiseAndResolver<void>(ioContext.getCurrentLock().getIsolate()));
   getController().setOwnerRef(*this);
 }
 
