@@ -34,12 +34,13 @@ public:
   }
 
   kj::Promise<void> connect(kj::StringPtr host, const kj::HttpHeaders& headers,
-      kj::AsyncIoStream& connection, ConnectResponse& response) override {
+      kj::AsyncIoStream& connection, ConnectResponse& response,
+      kj::HttpClient::ConnectSettings settings) override {
     KJ_IF_MAYBE(w, worker) {
-      return w->get()->connect(host, headers, connection, response);
+      return w->get()->connect(host, headers, connection, response, settings);
     } else {
-      return promise.addBranch().then([this, host, &headers, &connection, &response]() {
-        return KJ_ASSERT_NONNULL(worker)->connect(host, headers, connection, response);
+      return promise.addBranch().then([this, host, &headers, &connection, &response, settings]() {
+        return KJ_ASSERT_NONNULL(worker)->connect(host, headers, connection, response, settings);
       });
     }
   }
@@ -210,7 +211,8 @@ kj::Promise<void> RevocableWorkerInterface::request(
 }
 
 kj::Promise<void> RevocableWorkerInterface::connect(kj::StringPtr host, const kj::HttpHeaders& headers,
-    kj::AsyncIoStream& connection, ConnectResponse& response) {
+    kj::AsyncIoStream& connection, ConnectResponse& response,
+    kj::HttpClient::ConnectSettings settings) {
   KJ_UNIMPLEMENTED("TODO(someday): RevocableWorkerInterface::connect() should be implemented to "
       "disconnect long-lived connections similar to how it treats WebSockets");
 }
@@ -258,7 +260,8 @@ public:
   }
 
   kj::Promise<void> connect(kj::StringPtr host, const kj::HttpHeaders& headers,
-      kj::AsyncIoStream& connection, ConnectResponse& response) override {
+      kj::AsyncIoStream& connection, ConnectResponse& response,
+      kj::HttpClient::ConnectSettings settings) override {
     kj::throwFatalException(kj::mv(exception));
   }
 
@@ -309,9 +312,9 @@ kj::Promise<void> RpcWorkerInterface::request(
 
 kj::Promise<void> RpcWorkerInterface::connect(
     kj::StringPtr host, const kj::HttpHeaders& headers, kj::AsyncIoStream& connection,
-    ConnectResponse& tunnel) {
+    ConnectResponse& tunnel, kj::HttpClient::ConnectSettings settings) {
   auto inner = httpOverCapnpFactory.capnpToKj(dispatcher.getHttpServiceRequest().send().getHttp());
-  auto promise = inner->connect(host, headers, connection, tunnel);
+  auto promise = inner->connect(host, headers, connection, tunnel, settings);
   return promise.attach(kj::mv(inner));
 }
 

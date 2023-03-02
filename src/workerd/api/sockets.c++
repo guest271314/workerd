@@ -65,7 +65,11 @@ jsg::Ref<Socket> connectImplNoOutputLock(
   // Set up the connection.
   auto headers = kj::heap<kj::HttpHeaders>(ioContext.getHeaderTable());
   auto httpClient = kj::newHttpClient(*client);
-  auto request = httpClient->connect(addressStr, *headers);
+  kj::HttpClient::ConnectSettings connectSettings = { .useTls = false };
+  KJ_IF_MAYBE(opts, options) {
+    connectSettings.useTls = opts->useSecureTransport;
+  }
+  auto request = httpClient->connect(addressStr, *headers, connectSettings);
   auto connDisconnPromise = request.connection->whenWriteDisconnected();
 
   // Initialise the readable/writable streams with the readable/writable sides of an AsyncIoStream.
