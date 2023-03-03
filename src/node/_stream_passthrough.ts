@@ -3,6 +3,13 @@
 //     https://opensource.org/licenses/Apache-2.0
 //
 /* eslint-disable */
+
+// TODO(soon): Remove this once assert is out of experimental
+import { default as CompatibilityFlags } from 'workerd:compatibility-flags';
+if (!CompatibilityFlags.workerdExperimental) {
+  throw new Error('node:stream is experimental.');
+}
+
 import { PassThrough } from 'node-internal:streams_transform';
 export { PassThrough };
 export default PassThrough;
